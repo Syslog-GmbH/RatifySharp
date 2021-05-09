@@ -5,6 +5,14 @@
     <Platforms>AnyCPU;x86</Platforms>
     <RootNamespace>Ratify</RootNamespace>
     <SkipGtkInstall>True</SkipGtkInstall>
+    <Company>Syslog GmbH</Company>
+    <Description>RTF serializer/deserializer library for GtkSharp using GTK text buffers and tags.</Description>
+    <Copyright>Copyright 2021</Copyright>
+    <RepositoryUrl>https://github.com/Syslog-GmbH/RatifySharp</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Syslog-GmbH/RatifySharp</PackageProjectUrl>
+    <PackageTags>gtk rtf ratify</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseUrl>https://www.gnu.org/licenses/lgpl-3.0.txt</PackageLicenseUrl>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="GtkSharp" Version="3.24.24.34" />
