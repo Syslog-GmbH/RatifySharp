@@ -93,7 +93,7 @@ namespace Ratify
                 {
                     if (ctx.Text.Contains(";"))
                     {
-                        var color = $"{state.Red:X2}{state.Green:X2}{state.Blue:X2}";
+                        var color = $"#{state.Red:X2}{state.Green:X2}{state.Blue:X2}";
                         ctx.ColorTable.Add(color);
 
                         state.Red = 0;

@@ -30,16 +30,32 @@ namespace Ratify
             {
                 int code = 0;
                 if (ch < 0)
-                    code = ch + 65536;
+                {
+                    // Convert signed short to unsigned 16-bit value
+                    code = ch & 0xFFFF;
+                }
                 else
+                {
                     code = ch;
+                }
 
-                char utf8 = Convert.ToChar(code);
-                ctx.Text += utf8;
+                // Use char.ConvertFromUtf32 for proper Unicode handling (supports surrogate pairs for non-BMP characters)
+                try
+                {
+                    string utfChar = char.ConvertFromUtf32(code);
+                    ctx.Text += utfChar;
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // If code point is invalid, use replacement character
+                    ctx.Text += "\uFFFD";
+                }
 
                 for (int foo = 0; foo < attr.UnicodeSkip; foo++)
+                {
                     if (!ctx.SkipCharacterOrControlWord())
                         return false;
+                }
             }
 
             return true;
@@ -57,32 +73,32 @@ namespace Ratify
         {
             new RtfDeserialize.ControlWord("\n", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\n"),
             new RtfDeserialize.ControlWord("\r", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\n"),
-            new RtfDeserialize.ControlWord("-", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xC2\xAD"), // U+00AD Soft hyphen
+            new RtfDeserialize.ControlWord("-", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u00AD"), // U+00AD Soft hyphen
             new RtfDeserialize.ControlWord("\\", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\\"),
-            new RtfDeserialize.ControlWord("_", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x91"), // U+2011 NBhyphen
+            new RtfDeserialize.ControlWord("_", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2011"), // U+2011 NBhyphen
             new RtfDeserialize.ControlWord("{", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "{"),
             new RtfDeserialize.ControlWord("}", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "}"),
-            new RtfDeserialize.ControlWord("~", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xC2\xA0"), // U+00A0 NBSP
-            new RtfDeserialize.ControlWord("bullet", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\xA2"), // U+2022 Bullet
-            new RtfDeserialize.ControlWord("emdash", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x94"), // U+2014 em dash
-            new RtfDeserialize.ControlWord("emspace", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x83"), // U+2003 em space
-            new RtfDeserialize.ControlWord("endash", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x93"), // U+2013 en dash
-            new RtfDeserialize.ControlWord("enspace", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x82"), // U+2002 en space
-            new RtfDeserialize.ControlWord("line", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\xA8"), // U+2028 Line separator
-            new RtfDeserialize.ControlWord("ldblquote", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x9C"), // U+201C Left double quote
-            new RtfDeserialize.ControlWord("lquote", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x98"), // U+2018 Left single quote
-            new RtfDeserialize.ControlWord("ltrmark", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x8E"), // U+200E Left-to-right mark
+            new RtfDeserialize.ControlWord("~", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u00a0"), // U+00A0 NBSP
+            new RtfDeserialize.ControlWord("bullet", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2022"), // U+2022 Bullet
+            new RtfDeserialize.ControlWord("emdash", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2014"), // U+2014 em dash
+            new RtfDeserialize.ControlWord("emspace", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2003"), // U+2003 em space
+            new RtfDeserialize.ControlWord("endash", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2013"), // U+2013 en dash
+            new RtfDeserialize.ControlWord("enspace", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2002"), // U+2002 en space
+            new RtfDeserialize.ControlWord("line", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\n"), // U+2028 Line separator or newline
+            new RtfDeserialize.ControlWord("ldblquote", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u201c"), // U+201C Left double quote
+            new RtfDeserialize.ControlWord("lquote", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2018"), // U+2018 Left single quote
+            new RtfDeserialize.ControlWord("ltrmark", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u200e"), // U+200E Left-to-right mark
             new RtfDeserialize.ControlWord("par", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\n"),
-            new RtfDeserialize.ControlWord("qmspace", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x85"), // U+2005 4 per em space
-            new RtfDeserialize.ControlWord("rdblquote", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x9D"), // U+201D Right double quote
-            new RtfDeserialize.ControlWord("rquote", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x99"), // U+2019 Right single quote
-            new RtfDeserialize.ControlWord("rtlmark", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x8F"), // U+200F Right-to-left mark
+            new RtfDeserialize.ControlWord("qmspace", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2005"), // U+2005 4 per em space
+            new RtfDeserialize.ControlWord("rdblquote", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u201d"), // U+201D Right double quote
+            new RtfDeserialize.ControlWord("rquote", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u2019"), // U+2019 Right single quote
+            new RtfDeserialize.ControlWord("rtlmark", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u200f"), // U+200F Right-to-left mark
             new RtfDeserialize.ControlWord("tab", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\t"),
             new RtfDeserialize.ControlWord("u", RtfDeserialize.ControlWordType.RequiredParameter, false, doc_u),
             new RtfDeserialize.ControlWord("uc", RtfDeserialize.ControlWordType.RequiredParameter, false, doc_uc),
-            new RtfDeserialize.ControlWord("zwbo", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x8B"), // U+200B zero width space
-            new RtfDeserialize.ControlWord("zwj", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x8D"), // U+200D zero width joiner
-            new RtfDeserialize.ControlWord("zwnj", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\xE2\x80\x8C") // U+200C zero width non joiner
+            new RtfDeserialize.ControlWord("zwbo", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u200b"), // U+200B zero width space
+            new RtfDeserialize.ControlWord("zwj", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u200d"), // U+200D zero width joiner
+            new RtfDeserialize.ControlWord("zwnj", RtfDeserialize.ControlWordType.SpecialCharacter, false, null, 0, "\u200c") // U+200C zero width non joiner
         };
 
         public static bool doc_b(RtfDeserialize.ParserContext ctx, RtfState state, int par)
@@ -106,7 +122,7 @@ namespace Ratify
 
         public static bool doc_cb(RtfDeserialize.ParserContext ctx, RtfState state, int par)
         {
-            if (ctx.ColorTable.Count > par)
+            if (ctx.ColorTable.Count <= par)
             {
                 //g_set_error(error, RTF_ERROR, RTF_ERROR_UNDEFINED_COLOR, _("Color '%i' undefined"), param);
                 return false;
@@ -117,14 +133,15 @@ namespace Ratify
             if (state is RtfStateAttributes attr)
             {
                 string tagName = $"ratifysharp-background-{par}";
-                if (ctx.Tags.Lookup(tagName) == null)
+                var tag = ctx.Tags.Lookup(tagName);
+                if (tag == null)
                 {
-                    var tag = new TextTag(tagName);
-                    tag.Background = color;
-                    tag.BackgroundSet = true;
+                    tag = new TextTag(tagName);
                     ctx.Tags.Add(tag);
                 }
 
+                tag.Background = color;
+                tag.BackgroundSet = true;
                 attr.Background = par;
             }
 
@@ -133,7 +150,7 @@ namespace Ratify
 
         public static bool doc_cf(RtfDeserialize.ParserContext ctx, RtfState state, int par)
         {
-            if (ctx.ColorTable.Count > par)
+            if (ctx.ColorTable.Count <= par)
             {
                 //g_set_error(error, RTF_ERROR, RTF_ERROR_UNDEFINED_COLOR, _("Color '%i' undefined"), param);
                 return false;
@@ -144,14 +161,15 @@ namespace Ratify
             if (state is RtfStateAttributes attr)
             {
                 string tagName = $"ratifysharp-foreground-{par}";
-                if (ctx.Tags.Lookup(tagName) == null)
+                var tag = ctx.Tags.Lookup(tagName);
+                if (tag == null)
                 {
-                    var tag = new TextTag(tagName);
-                    tag.Foreground = color;
-                    tag.ForegroundSet = true;
+                    tag = new TextTag(tagName);
                     ctx.Tags.Add(tag);
                 }
 
+                tag.Foreground = color;
+                tag.ForegroundSet = true;
                 attr.Foreground = par;
             }
 
@@ -307,14 +325,15 @@ namespace Ratify
                 string color = ctx.ColorTable[param];
                 
                 string tagName = $"ratifysharp-highlight-{param}";
-                if (ctx.Tags.Lookup(tagName) == null)
+                var tag = ctx.Tags.Lookup(tagName);
+                if (tag == null)
                 {
-                    var tag = new TextTag(tagName);
-                    tag.ParagraphBackground = color;
-                    tag.SetProperty("paragraph-background-set", new GLib.Value(true));
+                    tag = new TextTag(tagName);
                     ctx.Tags.Add(tag);
                 }
 
+                tag.ParagraphBackground = color;
+                tag.SetProperty("paragraph-background-set", new GLib.Value(true));
                 attr.Background = param;
             }
 
@@ -496,6 +515,63 @@ namespace Ratify
                 }
 
                 attr.Justification = (int)Justification.Fill;
+            }
+
+            return true;
+        }
+
+        public static bool doc_tql(RtfDeserialize.ParserContext ctx, RtfState state, int param)
+        {
+            if (state is RtfStateAttributes attr)
+            {
+                string tagName = "ratifysharp-left";
+                if (ctx.Tags.Lookup(tagName) == null)
+                {
+                    var tag = new TextTag(tagName);
+                    tag.Justification = Justification.Left;
+                    tag.JustificationSet = true;
+                    ctx.Tags.Add(tag);
+                }
+
+                attr.TabJustification = (int)Justification.Left;
+            }
+
+            return true;
+        }
+
+        public static bool doc_tqr(RtfDeserialize.ParserContext ctx, RtfState state, int param)
+        {
+            if (state is RtfStateAttributes attr)
+            {
+                string tagName = "ratifysharp-right";
+                if (ctx.Tags.Lookup(tagName) == null)
+                {
+                    var tag = new TextTag(tagName);
+                    tag.Justification = Justification.Right;
+                    tag.JustificationSet = true;
+                    ctx.Tags.Add(tag);
+                }
+
+                attr.TabJustification = (int)Justification.Right;
+            }
+
+            return true;
+        }
+
+        public static bool doc_tqc(RtfDeserialize.ParserContext ctx, RtfState state, int param)
+        {
+            if (state is RtfStateAttributes attr)
+            {
+                string tagName = "ratifysharp-center";
+                if (ctx.Tags.Lookup(tagName) == null)
+                {
+                    var tag = new TextTag(tagName);
+                    tag.Justification = Justification.Center;
+                    tag.JustificationSet = true;
+                    ctx.Tags.Add(tag);
+                }
+
+                attr.TabJustification = (int)Justification.Center;
             }
 
             return true;
@@ -779,7 +855,13 @@ namespace Ratify
                     attr.Tabs.Resize(tabIndex + 1);
                 }
 
-                attr.Tabs.SetTab(tabIndex, TabAlign.Left, RtfDeserialize.TwipsToPango(twips));
+                var currentTabAlign = (int)TabAlign.Left;
+                if (attr.TabJustification != -1)
+                {
+                    currentTabAlign = attr.TabJustification;
+                }
+
+                attr.Tabs.SetTab(tabIndex, (TabAlign)currentTabAlign, RtfDeserialize.TwipsToPango(twips));//unser PangoSharp hat nur TabAlign.Left (seit Pango 1.50 gibt es aber auch Right, Center und Decimal)
             }
 
             return true;
@@ -948,6 +1030,9 @@ namespace Ratify
             new RtfDeserialize.ControlWord("strike", RtfDeserialize.ControlWordType.OptionalParameter, true, doc_strike, 1),
             new RtfDeserialize.ControlWord("sub", RtfDeserialize.ControlWordType.NoParameter, true, doc_sub),
             new RtfDeserialize.ControlWord("super", RtfDeserialize.ControlWordType.NoParameter, true, doc_super),
+            new RtfDeserialize.ControlWord("tqc", RtfDeserialize.ControlWordType.NoParameter, true, doc_tqc),
+            new RtfDeserialize.ControlWord("tql", RtfDeserialize.ControlWordType.NoParameter, true, doc_tql),
+            new RtfDeserialize.ControlWord("tqr", RtfDeserialize.ControlWordType.NoParameter, true, doc_tqr),
             new RtfDeserialize.ControlWord("tx", RtfDeserialize.ControlWordType.RequiredParameter, false, doc_tx),
             new RtfDeserialize.ControlWord("ul", RtfDeserialize.ControlWordType.OptionalParameter, true, doc_ul, 1),
             new RtfDeserialize.ControlWord("uld", RtfDeserialize.ControlWordType.OptionalParameter, true, doc_ul, 1), // Treat unsupported types
@@ -1142,7 +1227,8 @@ namespace Ratify
             new RtfDeserialize.ControlWord("colortbl", RtfDeserialize.ControlWordType.Destination, false, null, 0, null, info: colortbl_destination),
             new RtfDeserialize.ControlWord("deff", RtfDeserialize.ControlWordType.RequiredParameter, false, doc_deff),
             new RtfDeserialize.ControlWord("deflang", RtfDeserialize.ControlWordType.RequiredParameter, false, doc_deflang),
-            new RtfDeserialize.ControlWord("field", RtfDeserialize.ControlWordType.Destination, true, null, 0, null, info: field_destination),
+            //new RtfDeserialize.ControlWord("field", RtfDeserialize.ControlWordType.Destination, true, null, 0, null, info: field_destination),
+            new RtfDeserialize.ControlWord("field", RtfDeserialize.ControlWordType.Destination, false, null, 0, null, info: ignore_destination),
             new RtfDeserialize.ControlWord("fonttbl", RtfDeserialize.ControlWordType.Destination, false, null, 0, null, info: fonttbl_destination),
             new RtfDeserialize.ControlWord("footnote", RtfDeserialize.ControlWordType.Destination, true, doc_footnote, 0, null, info: footnote_destination),
             new RtfDeserialize.ControlWord("header", RtfDeserialize.ControlWordType.Destination, false, null, 0, null, info: ignore_destination),
@@ -1201,7 +1287,45 @@ namespace Ratify
                     TextIter start = ctx.TextBuffer.GetIterAtMark(ctx.StartMark);
                     end = ctx.TextBuffer.GetIterAtMark(ctx.EndMark);
 
+                    int newLineCount = 0;
+                    bool lineEndingsSkipped = false;
+
+                    // Don't apply attributes to line endings
+                    if (end.EndsLine())
+                    {
+                        int lastIndex = text.LastIndexOf("\n");
+                        if (lastIndex == 0)
+                            lastIndex = -1;
+
+                        if (lastIndex > -1)
+                        {
+                            for (int i = lastIndex - 1; i > 0; i--)
+                            {
+                                if (text[i] == '\n')
+                                    lastIndex--;
+                                else
+                                    break;
+                            }
+                        }
+
+                        int firstNewLineEnding = -1;
+                        if (lastIndex > -1)
+                            firstNewLineEnding = lastIndex;
+
+                        if (firstNewLineEnding > -1)
+                        {
+                            newLineCount = text.Length - firstNewLineEnding;
+                            if (end.BackwardChars(newLineCount))
+                            {
+                                lineEndingsSkipped = true;
+                            }
+                        }
+                    }
+
                     ctx.ApplyAttributes(attr, start, end);
+
+                    if (lineEndingsSkipped)
+                        end.ForwardChars(newLineCount);
 
                     // Move the two marks back together again
                     ctx.TextBuffer.MoveMark(ctx.StartMark, end);

@@ -15,12 +15,13 @@
  */
 
 using Gdk;
+
 using Gtk;
+
 using Pango;
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -28,6 +29,11 @@ namespace Ratify
 {
     public class RtfDeserialize
     {
+        static RtfDeserialize()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+
         public class ParserContext
         {
             public int Codepage = -1;
@@ -45,7 +51,6 @@ namespace Ratify
 
             public string RtfText;
             public int Pos;
-            public string ConvertBuffer = string.Empty;
 
             /// <summary>
             /// Text waiting for insertion
@@ -517,7 +522,6 @@ namespace Ratify
                 // Special
                 if (attr.Font != -1)
                     TextBuffer.ApplyTag($"ratifysharp-font-{attr.Font}", start, end);
-
                 else if (DefaultFont != -1 && FontTable.Count > DefaultFont)
                     TextBuffer.ApplyTag($"ratifysharp-font-{DefaultFont}", start, end);
 
@@ -550,14 +554,14 @@ namespace Ratify
             }
 
             /// <summary>
-            /// Convert the character ch to unicode and add to the context's buffer
+            /// Convert the hex string to unicode and add to the context's buffer
             /// </summary>
-            public bool ConvertHexCharToUnicode(char ch)
+            public bool ConvertHexStringToUnicode(string hex)
             {
                 // Determine the character encoding that ch is in. First see if the current
                 // destination diverts us to another codepage (e.g., \fcharset in the \fonttbl
                 // destination) and if not, use either the current codepage or the default codepage.
-                var dest = DestinationStack.Peek() as Destination;
+                var dest = DestinationStack.Peek();
 
                 int codepage = dest.Info.GetCodepage(this);
                 if (codepage == -1)
@@ -573,24 +577,15 @@ namespace Ratify
                     return false;
                 }
 
-                // Now see if there was any incompletely converted text left over from previous characters
-                string textToConvert = string.Empty;
-                if (ConvertBuffer.Length > 0)
-                {
-                    ConvertBuffer += ch;
-                    textToConvert = ConvertBuffer;
-                    ConvertBuffer = string.Empty;
-                }
-                else
-                    textToConvert = new string(ch, 1);
-
                 try
                 {
-                    // Should use question mark as a replacement (fallback) character
-                    var convertedBytes = Encoding.Convert(enc, Encoding.UTF8, enc.GetBytes(textToConvert));
-                    var convertedText = Encoding.UTF8.GetString(convertedBytes);
+                    var hexBytes = ConvertHexStringToByteArray(hex);
 
-                    Text += convertedText;
+                    // Should use question mark as a replacement (fallback) character
+                    var dstBytes = Encoding.Convert(enc, Encoding.UTF8, hexBytes);
+                    var dstString = Encoding.UTF8.GetString(dstBytes);
+
+                    Text += dstString;
                 }
                 catch (Exception)
                 {
@@ -643,11 +638,9 @@ namespace Ratify
                             }
 
                             string hexcode = RtfText.Substring(Pos + 2, 2);
-                            char ch = ConvertHexToChar(hexcode);
-
                             Pos += 4;
 
-                            if (!ConvertHexCharToUnicode(ch))
+                            if (!ConvertHexStringToUnicode(hexcode))
                                 return false;
                         }
                         else
@@ -669,17 +662,8 @@ namespace Ratify
                     }
                     else
                     {
-                        // If there is any partial wide character in the convert buffer, then
-                        // try to combine it with this one as a double-byte character
-                        if (ConvertBuffer.Length > 0)
-                        {
-                            if (!ConvertHexCharToUnicode(RtfText[Pos]))
-                                return false;
-                        }
-                        else
-                            // Add character to current string
-                            Text += RtfText[Pos];
-
+                        // Add character to current string
+                        Text += RtfText[Pos];
                         Pos++;
                     }
 
@@ -740,17 +724,6 @@ namespace Ratify
             if ('a' <= c && c <= 'f') return true;
             if ('A' <= c && c <= 'F') return true;
             return false;
-        }
-
-        public static char ConvertHexToChar(string hex)
-        {
-            try
-            {
-                return (char)int.Parse(hex, NumberStyles.HexNumber);
-            }
-            catch { }
-
-            return char.MinValue;
         }
 
         /// <summary>

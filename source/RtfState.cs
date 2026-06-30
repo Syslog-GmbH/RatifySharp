@@ -39,6 +39,11 @@ namespace Ratify
         public int Justification = -1;
 
         /// <summary>
+        /// GtkJustification value or -1 if unset
+        /// </summary>
+        public int TabJustification = -1;
+
+        /// <summary>
         /// GtkTextDirection value or -1 if unset
         /// </summary>
         public int ParDirection = -1;

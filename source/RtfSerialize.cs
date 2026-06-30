@@ -407,7 +407,13 @@ namespace Ratify
                         Output += "\\}";
                         continue;
                     }
-                    else if (ch > 0x00 && ch < 0x80)
+                    else if (ch >= 0x00 && ch < 0x20)
+                    {
+                        // Hex character
+                        Output += $"\\'{Convert.ToByte(ch).ToString("X2")}";
+                        continue;
+                    }
+                    else if (ch >= 0x20 && ch < 0x80)
                     {
                         Output += ch;
                         continue;
@@ -499,8 +505,10 @@ namespace Ratify
                     }
                     else
                     {
-                        // Unicode character ('?' as fallback)
-                        Output += $"\\u{(short)ch}?";
+                        // Unicode character with hex-encoded fallback. We return early here,
+                        // so no additional separator is emitted that could become visible text.
+                        Output += $"\\u{(short)ch}\\'3F";
+                        continue;
                     }
 
                     WriteSpaceOrNewline();
@@ -714,7 +722,8 @@ namespace Ratify
             public string WriteRtf()
             {
                 // Header
-                Output += "{\\rtf1\\ansi\\deff0\\uc0\n";
+                // We emit one-byte fallback after \uN (\'3F), so Unicode skip count must be 1.
+                Output += "{\\rtf1\\ansi\\deff0\\uc1\n";
 
                 // Font table
                 Output += "{\\fonttbl\n";
@@ -750,7 +759,9 @@ namespace Ratify
                 Output += "{" + $"\\*\\generator {assemblyName.Name} {assemblyName.Version.ToString(3)}" + "}\n";
                 Output += "{\\info {\\author .}{\\company .}{\\title .}\n";
 
-                Output += "{" + $"\\creatim{DateTime.Now.ToString("\\yr%Y\\mo%m\\dy%d\\hr%H\\min%M")}" + "}}\n";
+                // Creation time example: \yr1990\mo7\dy30\hr10\min48
+                var now = DateTime.Now;
+                Output += "{" + $"\\creatim\\yr{now.Year}\\mo{now.Month}\\dy{now.Day}\\hr{now.Hour}\\min{now.Minute}" + "}}\n";
                 
                 // Preliminary formatting
                 Output += $"\\deflang{RtfLangCode.LanguageToWinCode(Pango.Language.Default.ToString())}";
