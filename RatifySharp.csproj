@@ -1,21 +1,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup Condition="'$(LatestTargetOnly)' == 'true'">
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(LatestTargetOnly)' != 'true'">
+    <TargetFrameworks>net10.0;netstandard2.1;netstandard2.0;net472</TargetFrameworks>
+  </PropertyGroup>
+
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Platforms>AnyCPU;x86</Platforms>
+    <Platforms>AnyCPU;x86;x64</Platforms>
     <RootNamespace>Ratify</RootNamespace>
     <SkipGtkInstall>True</SkipGtkInstall>
     <Company>Syslog GmbH</Company>
     <Description>RTF serializer/deserializer library for GtkSharp using GTK text buffers and tags.</Description>
-    <Copyright>Copyright 2021</Copyright>
+    <Copyright>Copyright © 2022-2026 Syslog GmbH</Copyright>
     <RepositoryUrl>https://github.com/Syslog-GmbH/RatifySharp</RepositoryUrl>
     <PackageProjectUrl>https://github.com/Syslog-GmbH/RatifySharp</PackageProjectUrl>
     <PackageTags>gtk rtf ratify</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseUrl>https://www.gnu.org/licenses/lgpl-3.0.txt</PackageLicenseUrl>
+	<DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GtkSharp" Version="3.24.24.34" />
+    <PackageReference Include="GtkSharp" Version="3.24.24.95" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.9" />
   </ItemGroup>
 
 </Project>
