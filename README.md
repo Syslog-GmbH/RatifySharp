@@ -5,8 +5,8 @@ C# .NET port of Ratify by ptomato (Philip Chimento):
 https://github.com/ptomato/ratify
 
 ## Requirements ##
-* GtkSharp 3.24.24.34 ([GitHub](https://github.com/GtkSharp/GtkSharp), [NuGet](https://www.nuget.org/packages/GtkSharp/))
-* .NET Standard 2.0
+* GtkSharp 3.24.24.95 ([GitHub](https://github.com/GtkSharp/GtkSharp), [NuGet](https://www.nuget.org/packages/GtkSharp/))
+* .NET 10, .NET Framework 4.7.2, .NET Standard 2.0 or 2.1
 
 ## Installation ##
 Get the NuGet package [RatifySharp](https://www.nuget.org/packages/RatifySharp/).  
